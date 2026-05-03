@@ -112,7 +112,7 @@ def focus_window(ref: str) -> None:
 
 # ---------- AT-SPI walk ----------
 
-def _walk_atspi(pid: int) -> list[dict]:
+def _walk_atspi(pid: int, win_x: int = 0, win_y: int = 0) -> list[dict]:
     if _ATSPI is None:
         return []
     out: list[dict] = []
@@ -147,7 +147,16 @@ def _walk_atspi(pid: int) -> list[dict]:
             if role in INTERESTING_ROLES:
                 try:
                     ext = node.get_extents(_ATSPI.CoordType.SCREEN)
-                    if ext.width > 0 and ext.height > 0:
+                    ex_x, ex_y, ex_w, ex_h = ext.x, ext.y, ext.width, ext.height
+                    # Some toolkits (GTK4, Xwayland) report SCREEN as 0,0; fall back to WINDOW coords + window offset.
+                    if (ex_x == 0 and ex_y == 0) or ex_w == 0 or ex_h == 0:
+                        try:
+                            ew = node.get_extents(_ATSPI.CoordType.WINDOW)
+                            if ew.width > 0 and ew.height > 0:
+                                ex_x, ex_y, ex_w, ex_h = ew.x + win_x, ew.y + win_y, ew.width, ew.height
+                        except Exception:
+                            pass
+                    if ex_w > 0 and ex_h > 0:
                         states = set()
                         try:
                             states = {s.value_name for s in node.get_state_set().get_states()}
@@ -158,13 +167,21 @@ def _walk_atspi(pid: int) -> list[dict]:
                             ai = node.get_action_iface()
                             if ai is not None:
                                 for k in range(ai.get_n_actions()):
-                                    actions.add((ai.get_name(k) or "").lower())
+                                    nm_k = ""
+                                    try:
+                                        nm_k = _ATSPI.Action.get_action_name(ai, k) or ""
+                                    except Exception:
+                                        try:
+                                            nm_k = ai.get_name(k) or ""
+                                        except Exception:
+                                            pass
+                                    actions.add(nm_k.lower())
                         except Exception:
                             pass
                         out.append({
                             "role": role,
                             "name": name[:120],
-                            "x": ext.x, "y": ext.y, "w": ext.width, "h": ext.height,
+                            "x": ex_x, "y": ex_y, "w": ex_w, "h": ex_h,
                             "canPress": "press" in actions or "click" in actions or "activate" in actions,
                             "canSetValue": role in {"text", "entry", "password text", "spin button", "combo box"},
                             "canFocus": "ATSPI_STATE_FOCUSABLE" in states or True,
@@ -247,7 +264,9 @@ def screenshot(window_ref: str | None) -> dict:
         pass
 
     pid = win["pid"] if win else 0
-    walk = _walk_atspi(pid) if pid else []
+    wx = win["x"] if win else 0
+    wy = win["y"] if win else 0
+    walk = _walk_atspi(pid, wx, wy) if pid else []
     targets = assign_elements(walk)
     return {
         "stateId": state_id,
