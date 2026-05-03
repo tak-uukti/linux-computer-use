@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const helperDir = path.join(os.homedir(), ".pi", "agent", "helpers", "pi-computer-use-linux");
+const helperDir = path.join(os.homedir(), ".pi", "agent", "helpers", "linux-computer-use");
 const helperPath = path.join(helperDir, "bridge");
 const bridgePy = path.join(rootDir, "bridge", "bridge.py");
 

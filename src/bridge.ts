@@ -4,7 +4,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 
-const HELPER_PATH = path.join(os.homedir(), ".pi", "agent", "helpers", "pi-computer-use-linux", "bridge");
+const HELPER_PATH = path.join(os.homedir(), ".pi", "agent", "helpers", "linux-computer-use", "bridge");
 const TIMEOUT_MS = 15000;
 
 interface Pending {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Linux/X11 bridge for pi-computer-use-linux.
+"""Linux/X11 bridge for linux-computer-use.
 
 Newline-delimited JSON protocol over stdio. Each request:
   {"id": "...", "cmd": "...", ...args}

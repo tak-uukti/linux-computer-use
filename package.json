@@ -1,6 +1,6 @@
 {
-  "name": "@tak1tak/pi-computer-use-linux",
-  "version": "0.1.1",
+  "name": "@tak1tak/linux-computer-use",
+  "version": "0.2.0",
   "description": "Token-efficient Linux/X11 computer-use tools for Pi (mariozechner/pi-coding-agent). AT-SPI + xdotool, ~1k LOC.",
   "type": "module",
   "keywords": ["pi-package", "pi-extension", "pi", "computer-use", "linux", "x11", "at-spi", "xdotool", "automation", "agent"],
@@ -8,10 +8,10 @@
   "author": "Tak1tak <https://bytak.in>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tak-uukti/pi-computer-use-linux.git"
+    "url": "git+https://github.com/tak-uukti/linux-computer-use.git"
   },
-  "bugs": { "url": "https://github.com/tak-uukti/pi-computer-use-linux/issues" },
-  "homepage": "https://github.com/tak-uukti/pi-computer-use-linux#readme",
+  "bugs": { "url": "https://github.com/tak-uukti/linux-computer-use/issues" },
+  "homepage": "https://github.com/tak-uukti/linux-computer-use#readme",
   "engines": { "node": ">=20.6.0" },
   "files": [
     "extensions",

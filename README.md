@@ -1,61 +1,115 @@
 <p align="center">
-  <img src="./assets/logo.png" width="40%" alt="pi-computer-use-linux">
+  <img src="./assets/logo.png" width="40%" alt="linux-computer-use">
 </p>
 
-<h1 align="center">pi-computer-use-linux</h1>
+<h1 align="center">linux-computer-use</h1>
 
 <p align="center">
-  <em>Token-efficient Linux/X11 computer-use tools for <a href="https://github.com/mariozechner/pi-coding-agent">Pi</a>.</em>
+  <em>Linux/X11 computer-use tools for AI agents — Pi, Claude Code, OpenCode, and any MCP-aware client. AT-SPI + xdotool, ~1k LOC.</em>
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="license" src="https://img.shields.io/github/license/tak-uukti/pi-computer-use-linux?style=flat-square"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/github/license/tak-uukti/linux-computer-use?style=flat-square"></a>
   <img alt="platform" src="https://img.shields.io/badge/platform-linux%20%7C%20x11-blue?style=flat-square">
   <img alt="node" src="https://img.shields.io/badge/node-%E2%89%A520.6-339933?style=flat-square&logo=node.js&logoColor=white">
   <img alt="python" src="https://img.shields.io/badge/python-%E2%89%A53.10-3776ab?style=flat-square&logo=python&logoColor=white">
-  <a href="https://github.com/tak-uukti/pi-computer-use-linux/releases"><img alt="release" src="https://img.shields.io/github/v/tag/tak-uukti/pi-computer-use-linux?style=flat-square&label=release"></a>
+  <a href="https://github.com/tak-uukti/linux-computer-use/releases"><img alt="release" src="https://img.shields.io/github/v/tag/tak-uukti/linux-computer-use?style=flat-square&label=release"></a>
 </p>
 
-A Linux port of [`@injaneity/pi-computer-use`](https://github.com/injaneity/pi-computer-use). Same idea — give the [Pi coding agent](https://github.com/mariozechner/pi-coding-agent) a semantic computer-use surface for visible windows so it can prefer accessibility refs (`@e1`) over raw coordinates, and only attach screenshots when the AX tree is too sparse to act reliably.
+A Linux port of [`@injaneity/pi-computer-use`](https://github.com/injaneity/pi-computer-use). One bridge, three frontends:
 
-The macOS original uses Apple's Accessibility API, AppleScript, and ScreenCaptureKit (~6,800 lines of Swift + TS). This port replaces the entire native layer with **AT-SPI 2 + xdotool + scrot**, ships a single ~470-line Python bridge, and trims the tool surface from 15 → **8** to keep prompts cheap.
+- **Pi extension** for [`mariozechner/pi-coding-agent`](https://github.com/mariozechner/pi-coding-agent)
+- **MCP server** for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (and any other MCP host)
+- **MCP server** for [OpenCode](https://opencode.ai)
+
+The macOS original uses Apple's Accessibility API + AppleScript + ScreenCaptureKit (~6,800 lines of Swift + TS). This port replaces the entire native layer with **AT-SPI 2 + xdotool + scrot**, ships a single ~470-line Python bridge, and trims the tool surface from 15 → **8** to keep prompts cheap.
 
 | | upstream macOS | this port |
 |---|---|---|
-| Total LOC | ~6,866 | **~1,020** (-85%) |
+| Total LOC | ~6,866 | **~1,200** (-83%) |
 | Tools registered | ~15 | **8** |
 | Native helper | 2,065 lines Swift | **471 lines Python** |
 | Runtime deps | Swift toolchain, codesign | `python3-gi`, `xdotool`, `wmctrl`, `scrot` |
-| Token budget per turn | larger | trimmed schemas, terse descriptions |
+| Frontends | macOS only | Pi · Claude Code · OpenCode · any MCP client |
 
-## Quick start
+## System dependencies (all installs)
 
 ```bash
-# 1. system deps (Debian/Ubuntu)
+# Debian/Ubuntu
 sudo apt-get install -y python3 python3-gi gir1.2-atspi-2.0 xdotool wmctrl scrot
 
-# 2. enable AT-SPI on the desktop session (GNOME)
+# Enable AT-SPI on the desktop session (GNOME)
 gsettings set org.gnome.desktop.interface toolkit-accessibility true
-
-# 3. install as a Pi extension
-pi install git:github.com/tak-uukti/pi-computer-use-linux@v0.1.1
 ```
 
-The postinstall script writes a small bash wrapper to `~/.pi/agent/helpers/pi-computer-use-linux/bridge` that execs `python3 bridge/bridge.py`. No build step, no codesign, no native compile.
+X11 only — Wayland sessions cannot capture other-app windows or synthesize input via xdotool. Run a GNOME-on-Xorg, KDE-on-X11, or XFCE session.
 
-In a Pi session, call `screenshot` first — it picks the focused window, returns AT-SPI refs (`@e1`, `@e2`, …) plus a PNG, and from there you can `click({ref:"@e3"})`, `set_text({ref:"@e2", text:"…"})`, etc.
+## Install
 
-```ts
-list_windows()
-screenshot({ window: "@w1" })
-click({ ref: "@e3" })
-type_text({ text: "Taksheel" })
-keypress({ keys: ["Return"] })
+### Option 1 — Pi (`mariozechner/pi-coding-agent`)
+
+```bash
+pi install git:github.com/tak-uukti/linux-computer-use@v0.2.0
 ```
+
+The postinstall script writes a small bash wrapper to `~/.pi/agent/helpers/linux-computer-use/bridge` that execs `python3 bridge/bridge.py`. No build step, no codesign, no native compile.
+
+In a Pi session, call `screenshot` first — it picks the focused window, returns AT-SPI refs (`@e1`, `@e2`, …) plus a PNG, then you can `click({ref:"@e3"})`, `set_text({ref:"@e2", text:"…"})`, etc.
+
+### Option 2 — Claude Code (MCP)
+
+Installable as an MCP server straight from GitHub via `uvx` (no clone, no manual venv):
+
+```bash
+claude mcp add linux-computer-use -- uvx --from git+https://github.com/tak-uukti/linux-computer-use linux-computer-use-mcp
+```
+
+Or, equivalently, drop this into your Claude Code MCP config file (`~/.claude.json` under `mcpServers`):
+
+```json
+{
+  "mcpServers": {
+    "linux-computer-use": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/tak-uukti/linux-computer-use",
+        "linux-computer-use-mcp"
+      ]
+    }
+  }
+}
+```
+
+Restart Claude Code; the 8 tools (`list_windows`, `screenshot`, `click`, `type_text`, `set_text`, `keypress`, `scroll`, `computer_actions`) appear under the `linux-computer-use` namespace.
+
+### Option 3 — OpenCode (MCP)
+
+Add to `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "linux-computer-use": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/tak-uukti/linux-computer-use",
+        "linux-computer-use-mcp"
+      ],
+      "enabled": true
+    }
+  }
+}
+```
+
+Restart OpenCode and the tools become available to the agent.
 
 ## Tools
 
-8 total. Schemas are deliberately terse — see [`extensions/computer-use.ts`](./extensions/computer-use.ts).
+8 total. Schemas are deliberately terse — see [`extensions/computer-use.ts`](./extensions/computer-use.ts) (Pi) or [`mcp_server/server.py`](./mcp_server/server.py) (MCP).
 
 | name | purpose |
 |---|---|
@@ -71,32 +125,30 @@ keypress({ keys: ["Return"] })
 ## Architecture
 
 ```
-┌──────────────────────┐
-│  Pi coding agent     │  ── (TypeScript ESM)
-└──────────┬───────────┘
-           │  registerTool() x8
-           ▼
-┌──────────────────────┐
-│  extensions/         │   slim tool registrations + JSON schemas
-│  computer-use.ts     │
-└──────────┬───────────┘
-           │  typed methods
-           ▼
-┌──────────────────────┐
-│  src/bridge.ts       │   long-lived subprocess + JSON-line protocol
-└──────────┬───────────┘
-           │  newline-delimited JSON over stdio
-           ▼
-┌──────────────────────┐
-│  bridge/bridge.py    │   AT-SPI walk · xdotool input · wmctrl windows · scrot capture
-└──────────────────────┘
+┌──────────────────────────────────────────────┐
+│  Pi          Claude Code        OpenCode     │
+└──────┬─────────────┬──────────────────┬──────┘
+       │             │                  │
+       │ extension   │ MCP stdio        │ MCP stdio
+       ▼             ▼                  ▼
+┌──────────────┐  ┌────────────────────────────┐
+│ extensions/  │  │ mcp_server/server.py       │
+│ computer-    │  │ FastMCP wrapper (8 tools)  │
+│ use.ts       │  └─────────────┬──────────────┘
+└──────┬───────┘                │
+       │                        │
+       ▼                        ▼
+┌──────────────────────────────────────────────┐
+│ bridge/bridge.py  newline-JSON over stdio    │
+│ AT-SPI walk · xdotool · wmctrl · scrot       │
+└──────────────────────────────────────────────┘
 ```
 
 The AT-SPI walker is depth-capped (12) and element-capped (200) to keep prompts lean. Element bounds use SCREEN coords with a fallback to WINDOW coords + window offset (necessary for GTK4 / Xwayland which report SCREEN as 0,0).
 
 ## Verified end-to-end
 
-These captures are from the bridge running against a `Xvfb :99` + openbox session, driving real Linux apps. All four screenshots were taken via `scrot` after the bridge issued the actions.
+These captures are from the bridge running against a `Xvfb :99` + openbox session, driving real Linux apps. Screenshots taken via `scrot` after the bridge issued the actions.
 
 ### gnome-calculator — `keypress` flow
 
@@ -143,9 +195,9 @@ These captures are from the bridge running against a `Xvfb :99` + openbox sessio
 | LibreOffice (real Xorg session) | ✅ | ✅ via `SAL_USE_COMMON_ONE_ACCESSIBILITY=1` | ✅ |
 | Xvfb / nested X | ✅ | partial (some apps misbehave under Xvfb without a real session bus) | ✅ |
 
-## Limitations (v0.1.x)
+## Limitations
 
-- **X11 only.** Wayland sessions cannot capture other-app windows or synthesize input via xdotool. Run a GNOME-on-Xorg, KDE-on-X11, or XFCE session.
+- **X11 only.** Wayland sessions cannot capture other-app windows or synthesize input via xdotool.
 - **Apps must export AT-SPI** for `@eN` refs to populate. Most GTK / Qt apps do; Electron / Chromium need `--force-renderer-accessibility`.
 - **Mouse cursor physically moves** — no stealth pointer on X11.
 - Dropped vs upstream: `move_mouse`, `drag`, `wait`, `double_click`, `arrange_window`, `navigate_browser`, `list_apps`. Use `keypress`, `type_text`, and `computer_actions` to compose what you need.
@@ -153,15 +205,23 @@ These captures are from the bridge running against a `Xvfb :99` + openbox sessio
 ## Development
 
 ```bash
-git clone https://github.com/tak-uukti/pi-computer-use-linux
-cd pi-computer-use-linux
-npm install                                                # @types/node + typescript only
-npm run typecheck                                          # tsc -p tsconfig.json
+git clone https://github.com/tak-uukti/linux-computer-use
+cd linux-computer-use
+
+# Pi side (TypeScript)
+npm install
+npm run typecheck
+
+# Bridge sanity
 python3 -c "import ast; ast.parse(open('bridge/bridge.py').read())"
 echo '{"id":"1","cmd":"list_windows"}' | python3 bridge/bridge.py
+
+# MCP side
+python3 -m venv .venv && .venv/bin/pip install -e .
+.venv/bin/linux-computer-use-mcp   # speaks MCP over stdio
 ```
 
-The Pi extension API surface (`ExtensionAPI`, `ToolDef`, `AgentToolResult`) is stubbed locally in [`src/types.ts`](./src/types.ts) so typecheck runs without `@mariozechner/pi-coding-agent` installed.
+The Pi extension API surface is stubbed locally in [`src/types.ts`](./src/types.ts) so typecheck runs without `@mariozechner/pi-coding-agent` installed.
 
 ## Layout
 
@@ -172,14 +232,18 @@ The Pi extension API surface (`ExtensionAPI`, `ToolDef`, `AgentToolResult`) is s
 │   ├── bridge.py                    471-line Python helper (AT-SPI + xdotool + scrot)
 │   └── requirements.txt
 ├── extensions/
-│   └── computer-use.ts              tool registration + JSON schemas
+│   └── computer-use.ts              Pi tool registration + JSON schemas
+├── mcp_server/
+│   ├── __init__.py
+│   └── server.py                    FastMCP wrapper around the bridge (8 tools)
 ├── scripts/
-│   └── setup-helper.mjs             postinstall — writes ~/.pi/.../bridge wrapper
+│   └── setup-helper.mjs             Pi postinstall — writes ~/.pi/.../bridge wrapper
 ├── skills/computer-use/SKILL.md     pi skill — Quick Start + Pitfalls
 ├── src/
-│   ├── bridge.ts                    subprocess manager + JSON-line protocol
+│   ├── bridge.ts                    Pi-side subprocess manager + JSON-line protocol
 │   └── types.ts                     local stubs for the pi-coding-agent extension API
-├── package.json
+├── package.json                     npm metadata (Pi extension)
+├── pyproject.toml                   MCP server packaging (uvx-installable)
 ├── tsconfig.json
 ├── CHANGELOG.md
 ├── LICENSE
@@ -189,7 +253,8 @@ The Pi extension API surface (`ExtensionAPI`, `ToolDef`, `AgentToolResult`) is s
 ## Credits
 
 - [`@injaneity/pi-computer-use`](https://github.com/injaneity/pi-computer-use) — macOS original, design and protocol shape.
-- [`@mariozechner/pi-coding-agent`](https://github.com/mariozechner/pi-coding-agent) — the agent that loads this extension.
+- [`@mariozechner/pi-coding-agent`](https://github.com/mariozechner/pi-coding-agent) — the Pi agent.
+- [Model Context Protocol](https://modelcontextprotocol.io) — Claude Code / OpenCode interop.
 - AT-SPI 2, xdotool, wmctrl, scrot — the Linux building blocks doing all the real work.
 
 ## License

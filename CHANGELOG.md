@@ -1,6 +1,19 @@
 # Changelog
 
-All notable changes to **pi-computer-use-linux** are documented here. The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [SemVer](https://semver.org/spec/v2.0.0.html).
+All notable changes to **linux-computer-use** are documented here. The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [SemVer](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] — 2026-05-03
+
+### Added
+
+- **MCP server** (`mcp_server/server.py`) — same 8 tools exposed over the Model Context Protocol via FastMCP. Works with Claude Code, OpenCode, and any MCP-aware host.
+- **`pyproject.toml`** — `uvx --from git+https://github.com/tak-uukti/linux-computer-use linux-computer-use-mcp` works out of the box.
+- README rewritten with three install sections (Pi / Claude Code / OpenCode).
+
+### Changed
+
+- Repo and npm package renamed `pi-computer-use-linux` → `linux-computer-use`. The Pi helper directory is now `~/.pi/agent/helpers/linux-computer-use/bridge`.
+- npm package: `@tak1tak/pi-computer-use-linux` → `@tak1tak/linux-computer-use`, version bumped to 0.2.0.
 
 ## [0.1.1] — 2026-05-03
 
@@ -26,7 +39,7 @@ End-to-end on `Xvfb :99` + openbox + dbus + at-spi-bus:
 - 8 slim tools (`list_windows`, `screenshot`, `click`, `type_text`, `set_text`, `keypress`, `scroll`, `computer_actions`) registered as a Pi extension.
 - Python 3 bridge (`bridge/bridge.py`) using AT-SPI 2 (`gi.repository.Atspi`) + `xdotool` + `wmctrl` + `scrot`, speaking newline-delimited JSON over stdio.
 - TypeScript ESM extension layer with local stubs for the `@mariozechner/pi-coding-agent` extension API so typecheck runs without the peer dependency installed.
-- `scripts/setup-helper.mjs` postinstall — writes a bash wrapper to `~/.pi/agent/helpers/pi-computer-use-linux/bridge`. No native build, no codesign.
+- `scripts/setup-helper.mjs` postinstall — writes a bash wrapper to `~/.pi/agent/helpers/linux-computer-use/bridge`. No native build, no codesign.
 - Pi skill at `skills/computer-use/SKILL.md` (≤80 lines).
 - MIT license.
 
